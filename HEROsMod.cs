@@ -28,6 +28,7 @@ namespace HEROsMod
 	{
 		public static HEROsMod instance;
 		internal static Dictionary<string, ModTranslation> translations; // reference to private field.
+		internal List<UIKit.UIComponents.ModCategory> modCategories;
 		internal Dictionary<string, Action<bool>> crossModGroupUpdated = new Dictionary<string, Action<bool>>();
 
 		public override void Load()
@@ -39,6 +40,8 @@ namespace HEROsMod
 				FieldInfo translationsField = typeof(LocalizationLoader).GetField("translations", BindingFlags.Static | BindingFlags.NonPublic);
 				translations = (Dictionary<string, ModTranslation>)translationsField.GetValue(null);
 				//LoadTranslations();
+
+				modCategories = new List<UIKit.UIComponents.ModCategory>();
 
 				//	AddGlobalItem("HEROsModGlobalItem", new HEROsModGlobalItem());
 				// AddPlayer("HEROsModModPlayer", new HEROsModModPlayer());
@@ -125,6 +128,7 @@ namespace HEROsMod
 			ServiceController = null;
 			TimeWeatherControlHotbar.Unload();
 			ModUtils.previousInventoryItems = null;
+			modCategories = null;
 			translations = null;
 			instance = null;
 			NetTextModule.DeserializeAsServer -= NetTextModule_DeserializeAsServer;
@@ -300,6 +304,16 @@ namespace HEROsMod
 					);
 					ModUtils.DebugText("...Permission Added");
 				}
+				else if (message == "AddItemCategory")
+				{
+					ModUtils.DebugText("Item Category Adding...");
+					string sortName = args[1] as string;
+					string parentName = args[2] as string;
+					Predicate<Item> belongs = args[3] as Predicate<Item>;
+					if (!Main.dedServ)
+						modCategories.Add(new UIKit.UIComponents.ModCategory(sortName, parentName, belongs));
+					ModUtils.DebugText("...Item Category Added");
+				}
 				else if (message == "HasPermission")
 				{
 					if (/*Main.netMode != Terraria.ID.NetmodeID.Server ||*/ argsLength != 3) // for now, only allow this call on Server (2) --> why??
@@ -316,6 +330,13 @@ namespace HEROsMod
 						if(!ServiceHotbar.Collapsed) // sub hotbars
 							ServiceHotbar.collapseArrow_onLeftClick(null, null);
 					}
+				}
+				else if (message == "RegisterGodModeCallback")
+				{
+					ModUtils.DebugText("God Mode Callback Adding...");
+					Action<bool> callback = args[1] as Action<bool>;
+					GodModeService.GodModeCallback += callback;
+					ModUtils.DebugText("...God Mode Callback Added");
 				}
 				else
 				{
@@ -509,6 +530,7 @@ namespace HEROsMod
 				//   ModUtils.TextureExtruder.WorldView = worldMatrix;
 			}
 			HEROsModNetwork.Network.Update();
+			//CheckIfGameEnteredOrLeft(); // Only does GameEntered, since can't detect left. weird state. Probably should use ModPlayer.OnEnter/Exit anyway
 			//	HEROsModNetwork.CTF.CaptureTheFlag.Update();
 		}
 
