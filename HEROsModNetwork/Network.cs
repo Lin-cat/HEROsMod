@@ -1028,15 +1028,16 @@ namespace HEROsMod.HEROsModNetwork
 					break;
 				}
 			}
-			if (!npcFound) NPC.NewNPC(NPC.GetSpawnSourceForNaturalSpawn(), (int)position.X, (int)position.Y, type);
+			if (!npcFound) NPC.NewNPC(NPC.GetSource_NaturalSpawn(), (int)position.X, (int)position.Y, type);
 		}
 
 		public static void ResetAllPlayers()
 		{
-			for (int i = 0; i < Players.Length; i++)
-			{
-				Players[i].Reset();
-			}
+			Players = null;
+			//for (int i = 0; i < Players.Length; i++)
+			//{
+			//	Players[i].Reset();
+			//}
 		}
 
 		public static void ResendPlayerTileData(HEROsModPlayer player)
